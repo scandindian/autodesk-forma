@@ -1,35 +1,40 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from "react";
+import styled from "styled-components";
+import Toolbar from "./Toolbar";
 
-function App() {
-  const [count, setCount] = useState(0)
+const Layout = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 3fr 1fr;
+  grid-template-rows: auto;
+  height: 100vh;
+  background-color: #f0f2f5;
+`;
 
+const SideBar = styled.div`
+  background-color: #F5F5F5;
+  display: flex;
+  font-size: 1em;
+  padding: 24px;
+`;
+
+const MainContent = styled.div`
+  background-color: white;
+  padding: 24px;
+  display: flex;
+  font-size: 1em;
+`;
+
+const App: React.FC = () => {
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <Toolbar />
+      <Layout>
+        <SideBar>Solutions</SideBar>
+        <MainContent>Work Area</MainContent>
+        <SideBar>Statistics</SideBar>
+      </Layout>
     </>
-  )
-}
+  );
+};
 
-export default App
+export default App;
