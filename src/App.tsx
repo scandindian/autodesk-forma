@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import Toolbar from "./Toolbar";
+import Toolbar from "./components/Toolbar";
 
 const Layout = styled.div`
   display: grid;

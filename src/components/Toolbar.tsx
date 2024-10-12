@@ -3,7 +3,7 @@ import styled from "styled-components";
 
 const ToolbarContainer = styled.div`
   height: 80px;
-  background-color: #001529;
+  background-color: #212121;
   display: flex;
   justify-content: space-between;
   align-items: center;
