@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { MapContainer, TileLayer, Polygon } from "react-leaflet";
 import { IFileData } from "../types";
 import "leaflet/dist/leaflet.css";
+import Button from "./Button"; // Import the Button component
 
 const Layout = styled.div`
   background-color: white;
@@ -10,7 +11,6 @@ const Layout = styled.div`
   flex-direction: column;
   font-size: 1em;
   padding: 24px;
-  height: 100%;
 `;
 
 const LayoutTitle = styled.h2`
@@ -20,6 +20,12 @@ const LayoutTitle = styled.h2`
 const MapWrapper = styled.div`
   height: 500px;
   width: 100%;
+`;
+
+const OperationContainer = styled.div`
+  display: flex;
+  justify-content: center; /* Centers the buttons horizontally */
+  margin-top: 10px;
 `;
 
 interface IPolygonData {
@@ -33,6 +39,8 @@ interface IWorkAreaProps {
 
 const WorkArea: FC<IWorkAreaProps> = ({ fileData }) => {
   const [polygonData, setPolygonData] = useState<IPolygonData[]>([]);
+  const [isOperationPossible, setIsOperationPossible] =
+    useState<boolean>(false);
 
   // Function to calculate the centroid of a set of polygons
   const calculateCenter = (polygonData: IPolygonData[]) => {
@@ -81,6 +89,22 @@ const WorkArea: FC<IWorkAreaProps> = ({ fileData }) => {
     );
   };
 
+  useEffect(() => {
+    let selectedCount = 0;
+
+    polygonData.forEach((polygonItem: IPolygonData) => {
+      if (polygonItem.isSelected) {
+        selectedCount++;
+      }
+    });
+
+    if (selectedCount >= 2) {
+      setIsOperationPossible(true);
+    } else {
+      setIsOperationPossible(false);
+    }
+  }, [polygonData]);
+
   // Function to determine polygon styles
   const getPolygonStyle = (isSelected: boolean) => {
     return {
@@ -89,6 +113,12 @@ const WorkArea: FC<IWorkAreaProps> = ({ fileData }) => {
       fillOpacity: isSelected ? 0.6 : 0.3,
     };
   };
+
+  const handlePolygonUnion = () => {
+    console.log(polygonData);
+  };
+
+  const handlePolygonIntersection = () => {};
 
   return (
     <Layout>
@@ -118,6 +148,19 @@ const WorkArea: FC<IWorkAreaProps> = ({ fileData }) => {
           </MapContainer>
         )}
       </MapWrapper>
+
+      <OperationContainer>
+        <Button
+          label="Union"
+          disabled={!isOperationPossible}
+          onClick={handlePolygonUnion}
+        />
+        <Button
+          label="Intersect"
+          disabled={!isOperationPossible}
+          onClick={handlePolygonIntersection}
+        />
+      </OperationContainer>
     </Layout>
   );
 };
