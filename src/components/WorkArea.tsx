@@ -113,6 +113,15 @@ const WorkArea: FC<IWorkAreaProps> = ({ fileData }) => {
     };
   };
 
+  const deselectAllPolygons = () => {
+    setPolygonData((prevPolygonData) =>
+      prevPolygonData.map((polygon) => ({
+        ...polygon,
+        isSelected: false, // Set isSelected to false for all polygons
+      }))
+    );
+  };
+
   const handlePolygonUnion = () => {
     const selectedPolygons = polygonData.filter(
       (polygon) => polygon.isSelected
@@ -130,6 +139,11 @@ const WorkArea: FC<IWorkAreaProps> = ({ fileData }) => {
       unionPolygon = turf.union(
         turf.featureCollection([unionPolygon, geoPolygons[i]])
       ) as geojson.Feature<geojson.Polygon, geojson.GeoJsonProperties>;
+
+      if (unionPolygon === null) {
+        deselectAllPolygons();
+        return;
+      }
     }
 
     // Update the polygonData with the new union polygon
@@ -147,7 +161,44 @@ const WorkArea: FC<IWorkAreaProps> = ({ fileData }) => {
     ]);
   };
 
-  const handlePolygonIntersection = () => {};
+  const handlePolygonIntersection = () => {
+    const selectedPolygons = polygonData.filter(
+      (polygon) => polygon.isSelected
+    );
+
+    const geoPolygons = selectedPolygons.map((polygon) => {
+      return turf.polygon([polygon.positions]);
+    });
+
+    let intersectionPolygon: geojson.Feature<
+      geojson.Polygon,
+      geojson.GeoJsonProperties
+    > = geoPolygons[0];
+
+    for (let i = 1; i < geoPolygons.length; i++) {
+      intersectionPolygon = turf.intersect(
+        turf.featureCollection([intersectionPolygon, geoPolygons[i]])
+      ) as geojson.Feature<geojson.Polygon, geojson.GeoJsonProperties>;
+
+      if (intersectionPolygon === null) {
+        deselectAllPolygons();
+        return;
+      }
+    }
+
+    // Update the polygonData with the new intersection polygon
+    const intersectionPolygonData: IPolygonData = {
+      positions: intersectionPolygon.geometry.coordinates[0].map(
+        ([lng, lat]) => [lng, lat]
+      ),
+      isSelected: false,
+    };
+
+    setPolygonData((prevPolygonData) => [
+      ...prevPolygonData.filter((polygon) => !polygon.isSelected),
+      intersectionPolygonData,
+    ]);
+  };
 
   return (
     <Layout>
