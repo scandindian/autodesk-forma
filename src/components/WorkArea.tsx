@@ -3,7 +3,9 @@ import styled from "styled-components";
 import { MapContainer, TileLayer, Polygon } from "react-leaflet";
 import { IFileData } from "../types";
 import "leaflet/dist/leaflet.css";
-import Button from "./Button"; // Import the Button component
+import Button from "./Button";
+import * as turf from "@turf/turf";
+import * as geojson from "geojson";
 
 const Layout = styled.div`
   background-color: white;
@@ -98,11 +100,8 @@ const WorkArea: FC<IWorkAreaProps> = ({ fileData }) => {
       }
     });
 
-    if (selectedCount >= 2) {
-      setIsOperationPossible(true);
-    } else {
-      setIsOperationPossible(false);
-    }
+    // Enable operation if at least 2 polygons are selected
+    setIsOperationPossible(selectedCount >= 2);
   }, [polygonData]);
 
   // Function to determine polygon styles
@@ -115,7 +114,37 @@ const WorkArea: FC<IWorkAreaProps> = ({ fileData }) => {
   };
 
   const handlePolygonUnion = () => {
-    console.log(polygonData);
+    const selectedPolygons = polygonData.filter(
+      (polygon) => polygon.isSelected
+    );
+
+    const geoPolygons = selectedPolygons.map((polygon) => {
+      return turf.polygon([polygon.positions]);
+    });
+
+    let unionPolygon: geojson.Feature<
+      geojson.Polygon,
+      geojson.GeoJsonProperties
+    > = geoPolygons[0];
+    for (let i = 1; i < geoPolygons.length; i++) {
+      unionPolygon = turf.union(
+        turf.featureCollection([unionPolygon, geoPolygons[i]])
+      ) as geojson.Feature<geojson.Polygon, geojson.GeoJsonProperties>;
+    }
+
+    // Update the polygonData with the new union polygon
+    const unionPolygonData: IPolygonData = {
+      positions: unionPolygon.geometry.coordinates[0].map(([lng, lat]) => [
+        lng,
+        lat,
+      ]),
+      isSelected: false,
+    };
+
+    setPolygonData((prevPolygonData) => [
+      ...prevPolygonData.filter((polygon) => !polygon.isSelected),
+      unionPolygonData,
+    ]);
   };
 
   const handlePolygonIntersection = () => {};
