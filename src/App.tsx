@@ -43,7 +43,7 @@ const App: React.FC = () => {
           selectedSolution={selectedSolution}
           setSelectedSolution={setSelectedSolution}
         />
-        <WorkArea />
+        <WorkArea fileData={selectedSolution}/>
         <Statistics />
       </Layout>
     </>

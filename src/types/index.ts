@@ -1,16 +1,6 @@
-export interface ICoordinate {
-  latitude: number;
-  longitude: number;
-}
-
-export interface IPolygon {
-  type: "Polygon";
-  coordinates: Array<Array<ICoordinate>>;
-}
-
 export interface IGeometry {
   type: "Polygon";
-  coordinates: ICoordinate[][];
+  coordinates: Array<Array<[number, number]>>;
 }
 
 export interface IFeature {
