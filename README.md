@@ -10,6 +10,11 @@ A web application for visualizing GeoJSON data on a map and performing geometric
 - You can view the area of selected polygons in the statistics section.
 - Hover over polygons to identify them by their index.
 
+## Running the App Locally
+
+- `npm install`
+- `npm run dev`
+
 ## Specifications
 
 - This project is built with React, Vite, and TypeScript.
