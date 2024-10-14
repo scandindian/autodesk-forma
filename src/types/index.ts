@@ -18,3 +18,8 @@ export interface IFileData {
   filename: string;
   data: IFeatureCollection;
 }
+
+export interface IPolygonData {
+  positions: [number, number][];
+  isSelected: boolean;
+}

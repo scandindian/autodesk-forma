@@ -8,11 +8,14 @@ import {
 } from "react";
 import styled from "styled-components";
 import { MapContainer, TileLayer, Polygon, Tooltip } from "react-leaflet";
-import { IFeature, IFileData } from "../types";
+import { IFeature, IFileData, IPolygonData } from "../types";
 import "leaflet/dist/leaflet.css";
 import Button from "./Button";
-import * as turf from "@turf/turf";
-import * as geojson from "geojson";
+import {
+  calculateCenter,
+  calculateIntersection,
+  calculateUnion,
+} from "../utility";
 
 const Layout = styled.div`
   background-color: white;
@@ -37,11 +40,6 @@ const OperationContainer = styled.div`
   margin-top: 10px;
 `;
 
-interface IPolygonData {
-  positions: [number, number][];
-  isSelected: boolean;
-}
-
 interface IWorkAreaProps {
   fileData: IFileData[];
   setFileData: Dispatch<SetStateAction<IFileData[]>>;
@@ -58,26 +56,6 @@ const WorkArea: FC<IWorkAreaProps> = ({
   const [polygonData, setPolygonData] = useState<IPolygonData[]>([]);
   const [isOperationPossible, setIsOperationPossible] =
     useState<boolean>(false);
-
-  // Function to calculate the centroid of a set of polygons
-  const calculateCenter = (polygonData: IPolygonData[]) => {
-    let totalLat = 0;
-    let totalLng = 0;
-    let numPoints = 0;
-
-    polygonData.forEach((polygon) => {
-      polygon.positions.forEach((coord) => {
-        totalLat += coord[0];
-        totalLng += coord[1];
-        numPoints++;
-      });
-    });
-
-    return {
-      lat: totalLat / numPoints,
-      lng: totalLng / numPoints,
-    };
-  };
 
   // Memoized center to avoid recalculating on each render
   const center = useMemo(() => calculateCenter(polygonData), [polygonData]);
@@ -140,7 +118,6 @@ const WorkArea: FC<IWorkAreaProps> = ({
 
   useEffect(() => {
     let selectedCount = 0;
-
     polygonData.forEach((polygonItem: IPolygonData) => {
       if (polygonItem.isSelected) {
         selectedCount++;
@@ -170,82 +147,33 @@ const WorkArea: FC<IWorkAreaProps> = ({
   };
 
   const handlePolygonUnion = () => {
-    const selectedPolygons = polygonData.filter(
-      (polygon) => polygon.isSelected
-    );
+    const unionPolygonData: IPolygonData[] | null = calculateUnion(polygonData);
 
-    const geoPolygons = selectedPolygons.map((polygon) => {
-      return turf.polygon([polygon.positions]);
-    });
-
-    let unionPolygon: geojson.Feature<
-      geojson.Polygon,
-      geojson.GeoJsonProperties
-    > = geoPolygons[0];
-    for (let i = 1; i < geoPolygons.length; i++) {
-      unionPolygon = turf.union(
-        turf.featureCollection([unionPolygon, geoPolygons[i]])
-      ) as geojson.Feature<geojson.Polygon, geojson.GeoJsonProperties>;
-
-      if (unionPolygon === null) {
-        deselectAllPolygons();
-        return;
-      }
+    if (unionPolygonData === null) {
+      deselectAllPolygons();
+      return;
     }
-
-    // Update the polygonData with the new union polygon
-    const unionPolygonData: IPolygonData = {
-      positions: unionPolygon.geometry.coordinates[0].map(([lng, lat]) => [
-        lng,
-        lat,
-      ]),
-      isSelected: false,
-    };
 
     const newPolygonData = [
       ...polygonData.filter((polygon) => !polygon.isSelected),
-      unionPolygonData,
+      ...unionPolygonData,
     ];
 
     updateWorkData(newPolygonData);
   };
 
   const handlePolygonIntersection = () => {
-    const selectedPolygons = polygonData.filter(
-      (polygon) => polygon.isSelected
-    );
+    const intersectionPolygonData: IPolygonData[] | null =
+      calculateIntersection(polygonData);
 
-    const geoPolygons = selectedPolygons.map((polygon) => {
-      return turf.polygon([polygon.positions]);
-    });
-
-    let intersectionPolygon: geojson.Feature<
-      geojson.Polygon,
-      geojson.GeoJsonProperties
-    > = geoPolygons[0];
-
-    for (let i = 1; i < geoPolygons.length; i++) {
-      intersectionPolygon = turf.intersect(
-        turf.featureCollection([intersectionPolygon, geoPolygons[i]])
-      ) as geojson.Feature<geojson.Polygon, geojson.GeoJsonProperties>;
-
-      if (intersectionPolygon === null) {
-        deselectAllPolygons();
-        return;
-      }
+    if (intersectionPolygonData === null) {
+      deselectAllPolygons();
+      return;
     }
-
-    // Update the polygonData with the new intersection polygon
-    const intersectionPolygonData: IPolygonData = {
-      positions: intersectionPolygon.geometry.coordinates[0].map(
-        ([lng, lat]) => [lng, lat]
-      ),
-      isSelected: false,
-    };
 
     const newPolygonData = [
       ...polygonData.filter((polygon) => !polygon.isSelected),
-      intersectionPolygonData,
+      ...intersectionPolygonData,
     ];
 
     updateWorkData(newPolygonData);
