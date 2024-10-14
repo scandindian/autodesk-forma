@@ -49,7 +49,7 @@ const App: React.FC = () => {
           selectedSolution={selectedSolution}
           setSelectedSolution={setSelectedSolution}
         />
-        <Statistics />
+        <Statistics selectedSolution={selectedSolution} />
       </Layout>
     </>
   );

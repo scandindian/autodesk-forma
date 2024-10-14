@@ -7,7 +7,7 @@ import {
   SetStateAction,
 } from "react";
 import styled from "styled-components";
-import { MapContainer, TileLayer, Polygon } from "react-leaflet";
+import { MapContainer, TileLayer, Polygon, Tooltip } from "react-leaflet";
 import { IFeature, IFileData } from "../types";
 import "leaflet/dist/leaflet.css";
 import Button from "./Button";
@@ -274,7 +274,9 @@ const WorkArea: FC<IWorkAreaProps> = ({
                 eventHandlers={{
                   click: () => handlePolygonClick(index),
                 }}
-              />
+              >
+                <Tooltip>Polygon {index + 1}</Tooltip>
+              </Polygon>
             ))}
           </MapContainer>
         )}
