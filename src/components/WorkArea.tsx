@@ -45,6 +45,8 @@ interface IWorkAreaProps {
   setFileData: Dispatch<SetStateAction<IFileData[]>>;
   selectedSolution: IFileData;
   setSelectedSolution: Dispatch<SetStateAction<IFileData>>;
+  polygonData: IPolygonData[];
+  setPolygonData: Dispatch<SetStateAction<IPolygonData[]>>;
 }
 
 const WorkArea: FC<IWorkAreaProps> = ({
@@ -52,8 +54,9 @@ const WorkArea: FC<IWorkAreaProps> = ({
   setFileData,
   selectedSolution,
   setSelectedSolution,
+  polygonData,
+  setPolygonData,
 }) => {
-  const [polygonData, setPolygonData] = useState<IPolygonData[]>([]);
   const [isOperationPossible, setIsOperationPossible] =
     useState<boolean>(false);
 
@@ -72,7 +75,7 @@ const WorkArea: FC<IWorkAreaProps> = ({
     );
 
     setPolygonData(initialPolygonData);
-  }, [selectedSolution]);
+  }, [selectedSolution, setPolygonData]);
 
   const updateWorkData = (newPolygonData: IPolygonData[]) => {
     const updatedFeatures: IFeature[] = newPolygonData.map((polygon) => ({
@@ -147,7 +150,11 @@ const WorkArea: FC<IWorkAreaProps> = ({
   };
 
   const handlePolygonUnion = () => {
-    const unionPolygonData: IPolygonData[] | null = calculateUnion(polygonData);
+    const selectedPolygons = polygonData.filter(
+      (polygon) => polygon.isSelected
+    );
+    const unionPolygonData: IPolygonData[] | null =
+      calculateUnion(selectedPolygons);
 
     if (unionPolygonData === null) {
       deselectAllPolygons();
@@ -163,8 +170,11 @@ const WorkArea: FC<IWorkAreaProps> = ({
   };
 
   const handlePolygonIntersection = () => {
+    const selectedPolygons = polygonData.filter(
+      (polygon) => polygon.isSelected
+    );
     const intersectionPolygonData: IPolygonData[] | null =
-      calculateIntersection(polygonData);
+      calculateIntersection(selectedPolygons);
 
     if (intersectionPolygonData === null) {
       deselectAllPolygons();

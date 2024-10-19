@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import styled from "styled-components";
 import Toolbar from "./components/Toolbar";
 import Solutions from "./components/Solutions";
 import Statistics from "./components/Statistics";
 import WorkArea from "./components/WorkArea";
-import { IFileData } from "./types";
+import { IFileData, IPolygonData } from "./types";
 import { importedFileData } from "./utility";
 
 const Layout = styled.div`
@@ -16,12 +16,9 @@ const Layout = styled.div`
 `;
 
 const App: React.FC = () => {
-  const [fileData, setFileData] = useState<IFileData[]>([]);
+  const [fileData, setFileData] = useState<IFileData[]>(importedFileData);
   const [selectedSolution, setSelectedSolution] = useState(importedFileData[0]);
-
-  useEffect(() => {
-    setFileData(importedFileData);
-  }, []);
+  const [polygonData, setPolygonData] = useState<IPolygonData[]>([]);
 
   return (
     <>
@@ -37,8 +34,10 @@ const App: React.FC = () => {
           setFileData={setFileData}
           selectedSolution={selectedSolution}
           setSelectedSolution={setSelectedSolution}
+          polygonData={polygonData}
+          setPolygonData={setPolygonData}
         />
-        <Statistics selectedSolution={selectedSolution} />
+        <Statistics polygonData={polygonData} />
       </Layout>
     </>
   );

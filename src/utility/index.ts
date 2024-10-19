@@ -37,9 +37,11 @@ export const calculateCenter = (polygonData: IPolygonData[]) => {
 
 // Function to calculate the union of a set of polygons
 export const calculateUnion = (polygonData: IPolygonData[]) => {
-  const selectedPolygons = polygonData.filter((polygon) => polygon.isSelected);
+  if (polygonData.length === 0) {
+    return null;
+  }
 
-  const geoPolygons = selectedPolygons.map((polygon) => {
+  const geoPolygons = polygonData.map((polygon) => {
     return turf.polygon([polygon.positions]);
   });
 
@@ -88,9 +90,11 @@ export const calculateUnion = (polygonData: IPolygonData[]) => {
 
 // Function to calculate the intersection of a set of polygons
 export const calculateIntersection = (polygonData: IPolygonData[]) => {
-  const selectedPolygons = polygonData.filter((polygon) => polygon.isSelected);
+  if (polygonData.length === 0) {
+    return null;
+  }
 
-  const geoPolygons = selectedPolygons.map((polygon) => {
+  const geoPolygons = polygonData.map((polygon) => {
     return turf.polygon([polygon.positions]);
   });
 
@@ -135,4 +139,10 @@ export const calculateIntersection = (polygonData: IPolygonData[]) => {
   }
 
   return null;
+};
+
+// Function to calculate the area of a polygon
+export const calculatePolygonArea = (positions: [number, number][]) => {
+  const polygonItem = turf.polygon([positions]);
+  return turf.area(polygonItem);
 };
