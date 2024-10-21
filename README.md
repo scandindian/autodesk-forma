@@ -12,8 +12,9 @@ A web application for visualizing GeoJSON data on a map and performing geometric
 
 ## Running the App Locally
 
-- `npm install`
-- `npm run dev`
+- `npm install` to install dependencies
+- `npm run dev` to run the app
+- `npx vitest` to run tests
 
 ## Specifications
 
