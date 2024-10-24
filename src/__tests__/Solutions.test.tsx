@@ -1,8 +1,11 @@
 import { render, screen, fireEvent } from "@testing-library/react";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
 import "@testing-library/jest-dom";
+import { describe, it, expect } from "vitest";
 import Solutions from "../components/Solutions";
-import { IFeatureCollection, IFileData } from "../types";
-import { describe, it, expect, vi } from "vitest";
+import geoJsonDataReducer from "../store/slice";
+import { IFeatureCollection, IFileData, IPolygonData } from "../types";
 import SE_State_Management_Polygons_1 from "../data/SE_State_Management_Polygons_1.json";
 import SE_State_Management_Polygons_2 from "../data/SE_State_Management_Polygons_2.json";
 
@@ -18,59 +21,63 @@ const mockFileData: IFileData[] = [
   },
 ];
 
-const mockSelectedSolution: IFileData = mockFileData[0];
+// Helper function to render the component with Redux
+const renderWithRedux = (
+  component: React.ReactNode,
+  initialState: {
+    geoJsonData: {
+      fileData: IFileData[];
+      selectedSolution: IFileData;
+      polygonData: IPolygonData[];
+    };
+  }
+) => {
+  const store = configureStore({
+    reducer: {
+      geoJsonData: geoJsonDataReducer,
+    },
+    preloadedState: initialState,
+  });
 
-describe("Solutions Component", () => {
+  return render(<Provider store={store}>{component}</Provider>);
+};
+
+describe("Solutions Component with Redux", () => {
+  const initialState = {
+    geoJsonData: {
+      fileData: mockFileData,
+      selectedSolution: mockFileData[0], // The first file is selected initially
+      polygonData: [],
+    },
+  };
+
   it("renders the list of solutions", () => {
-    render(
-      <Solutions
-        fileData={mockFileData}
-        selectedSolution={mockSelectedSolution}
-        setSelectedSolution={vi.fn()}
-      />
-    );
+    renderWithRedux(<Solutions />, initialState);
 
     // Check if both filenames are rendered
     expect(screen.getByText("solution1.json")).toBeInTheDocument();
     expect(screen.getByText("solution2.json")).toBeInTheDocument();
   });
 
-  it("highlights the selected solution", () => {
-    render(
-      <Solutions
-        fileData={mockFileData}
-        selectedSolution={mockSelectedSolution}
-        setSelectedSolution={vi.fn()}
-      />
-    );
-  });
-
-  it("calls setSelectedSolution when a solution is clicked", () => {
-    const mockSetSelectedSolution = vi.fn();
+  it("dispatches setSelectedSolution when a solution is clicked", () => {
+    const store = configureStore({
+      reducer: {
+        geoJsonData: geoJsonDataReducer,
+      },
+      preloadedState: initialState,
+    });
 
     render(
-      <Solutions
-        fileData={mockFileData}
-        selectedSolution={mockSelectedSolution}
-        setSelectedSolution={mockSetSelectedSolution}
-      />
+      <Provider store={store}>
+        <Solutions />
+      </Provider>
     );
 
     const itemToClick = screen.getByText("solution2.json");
     fireEvent.click(itemToClick);
 
-    expect(mockSetSelectedSolution).toHaveBeenCalledWith(mockFileData[1]); // Expect the second item to be set as selected
-  });
-
-  it("updates the selected item style when a different solution is clicked", () => {
-    const mockSetSelectedSolution = vi.fn();
-
-    render(
-      <Solutions
-        fileData={mockFileData}
-        selectedSolution={mockFileData[1]}
-        setSelectedSolution={mockSetSelectedSolution}
-      />
-    );
+    // Check if the setSelectedSolution action is dispatched
+    const actions = store.getState().geoJsonData;
+    expect(actions.selectedSolution).toEqual(mockFileData[1]); // Expect the second item to be selected
   });
 });

@@ -1,9 +1,24 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import Statistics from "../components/Statistics";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
+import geoJsonDataReducer from "../store/slice"; 
 import { IPolygonData } from "../types";
 
-describe("Statistics Component", () => {
+// Helper function to render with Redux store
+const renderWithRedux = (component: React.ReactNode, initialState: { geoJsonData: { fileData: never[]; selectedSolution: null; polygonData: IPolygonData[]; }; }) => {
+  const store = configureStore({
+    reducer: {
+      geoJsonData: geoJsonDataReducer,
+    },
+    preloadedState: initialState,
+  });
+
+  return render(<Provider store={store}>{component}</Provider>);
+};
+
+describe("Statistics Component with Redux", () => {
   const mockPolygonData: IPolygonData[] = [
     {
       positions: [
@@ -27,8 +42,16 @@ describe("Statistics Component", () => {
     },
   ];
 
-  it("renders correctly with polygon data", () => {
-    render(<Statistics polygonData={mockPolygonData} />);
+  const initialState = {
+    geoJsonData: {
+      fileData: [],
+      selectedSolution: null,
+      polygonData: mockPolygonData,
+    },
+  };
+
+  it("renders correctly with polygon data from Redux", () => {
+    renderWithRedux(<Statistics />, initialState);
 
     // Check if the Statistics title is present
     expect(screen.getByText("Statistics")).toBeInTheDocument();
@@ -39,7 +62,7 @@ describe("Statistics Component", () => {
   });
 
   it("calculates total selected area correctly", () => {
-    render(<Statistics polygonData={mockPolygonData} />);
+    renderWithRedux(<Statistics />, initialState);
 
     expect(screen.getByText("Total Selected Area:")).toBeInTheDocument();
   });

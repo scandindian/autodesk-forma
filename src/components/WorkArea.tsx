@@ -1,11 +1,11 @@
+import { FC, useMemo, useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../store";
 import {
-  FC,
-  useMemo,
-  useState,
-  useEffect,
-  Dispatch,
-  SetStateAction,
-} from "react";
+  setFileData,
+  setSelectedSolution,
+  setPolygonData,
+} from "../store/slice";
 import styled from "styled-components";
 import { MapContainer, TileLayer, Polygon, Tooltip } from "react-leaflet";
 import { IFeature, IFileData, IPolygonData } from "../types";
@@ -40,42 +40,38 @@ const OperationContainer = styled.div`
   margin-top: 10px;
 `;
 
-interface IWorkAreaProps {
-  fileData: IFileData[];
-  setFileData: Dispatch<SetStateAction<IFileData[]>>;
-  selectedSolution: IFileData;
-  setSelectedSolution: Dispatch<SetStateAction<IFileData>>;
-  polygonData: IPolygonData[];
-  setPolygonData: Dispatch<SetStateAction<IPolygonData[]>>;
-}
-
-const WorkArea: FC<IWorkAreaProps> = ({
-  fileData,
-  setFileData,
-  selectedSolution,
-  setSelectedSolution,
-  polygonData,
-  setPolygonData,
-}) => {
+const WorkArea: FC = () => {
   const [isOperationPossible, setIsOperationPossible] =
     useState<boolean>(false);
+
+  const fileData: IFileData[] = useSelector(
+    (state: RootState) => state.geoJsonData.fileData
+  );
+  const selectedSolution: IFileData | null = useSelector(
+    (state: RootState) => state.geoJsonData.selectedSolution
+  );
+  const polygonData: IPolygonData[] = useSelector(
+    (state: RootState) => state.geoJsonData.polygonData
+  );
+  const dispatch = useDispatch();
 
   // Memoized center to avoid recalculating on each render
   const center = useMemo(() => calculateCenter(polygonData), [polygonData]);
 
   // Load the polygon positions and initialize selection state from fileData
   useEffect(() => {
-    const initialPolygonData = selectedSolution.data.features.map(
-      (feature) => ({
-        positions: feature.geometry.coordinates[0].map(
-          (coord) => [coord[1], coord[0]] as [number, number]
-        ),
-        isSelected: false, // Initially, none of the polygons are selected
-      })
-    );
+    if (selectedSolution != null) {
+      const initialPolygonData: IPolygonData[] =
+        selectedSolution.data.features.map((feature) => ({
+          positions: feature.geometry.coordinates[0].map(
+            (coord) => [coord[1], coord[0]] as [number, number]
+          ),
+          isSelected: false, // Initially, none of the polygons are selected
+        }));
 
-    setPolygonData(initialPolygonData);
-  }, [selectedSolution, setPolygonData]);
+      dispatch(setPolygonData(initialPolygonData));
+    }
+  }, [dispatch, selectedSolution]);
 
   const updateWorkData = (newPolygonData: IPolygonData[]) => {
     const updatedFeatures: IFeature[] = newPolygonData.map((polygon) => ({
@@ -87,36 +83,39 @@ const WorkArea: FC<IWorkAreaProps> = ({
       },
     }));
 
-    const newSelectedSolution: IFileData = {
-      ...selectedSolution,
-      data: {
-        ...selectedSolution.data,
-        ...{
-          type: "FeatureCollection",
-          features: updatedFeatures,
+    if (selectedSolution?.filename !== undefined) {
+      const newSelectedSolution: IFileData | null = {
+        ...selectedSolution,
+        data: {
+          ...selectedSolution?.data,
+          ...{
+            type: "FeatureCollection",
+            features: updatedFeatures,
+          },
         },
-      },
-    };
+      };
 
-    setSelectedSolution(newSelectedSolution);
+      dispatch(setSelectedSolution(newSelectedSolution));
 
-    const updatedFileData = fileData.map((file) =>
-      file.filename === selectedSolution.filename ? newSelectedSolution : file
-    );
+      const updatedFileData = fileData.map((file) =>
+        file.filename === selectedSolution?.filename
+          ? newSelectedSolution
+          : file
+      );
 
-    setFileData(updatedFileData);
+      dispatch(setFileData(updatedFileData));
+    }
   };
 
   // Function to handle polygon click and toggle its selection
   const handlePolygonClick = (index: number) => {
-    setPolygonData((prevPolygonData) =>
-      prevPolygonData.map((polygon, idx) => {
-        if (idx === index) {
-          return { ...polygon, isSelected: !polygon.isSelected };
-        }
-        return polygon;
-      })
-    );
+    const newPolygonData: IPolygonData[] = polygonData.map((polygon, idx) => {
+      if (idx === index) {
+        return { ...polygon, isSelected: !polygon.isSelected };
+      }
+      return polygon;
+    });
+    dispatch(setPolygonData(newPolygonData));
   };
 
   useEffect(() => {
@@ -141,12 +140,11 @@ const WorkArea: FC<IWorkAreaProps> = ({
   };
 
   const deselectAllPolygons = () => {
-    setPolygonData((prevPolygonData) =>
-      prevPolygonData.map((polygon) => ({
-        ...polygon,
-        isSelected: false, // Set isSelected to false for all polygons
-      }))
-    );
+    const newPolygonData = polygonData.map((polygon) => ({
+      ...polygon,
+      isSelected: false, // Set isSelected to false for all polygons
+    }));
+    dispatch(setPolygonData(newPolygonData));
   };
 
   const handlePolygonUnion = () => {

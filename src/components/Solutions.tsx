@@ -1,5 +1,8 @@
-import { Dispatch, FC, SetStateAction } from "react";
+import { FC } from "react";
 import styled from "styled-components";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../store";
+import { setSelectedSolution } from "../store/slice";
 import { IFileData } from "../types";
 
 const Layout = styled.div`
@@ -39,32 +42,30 @@ const ListItem = styled.li<ListItemProps>`
   }
 `;
 
-interface ISolutionProps {
-  fileData: IFileData[];
-  selectedSolution: IFileData;
-  setSelectedSolution: Dispatch<SetStateAction<IFileData>>;
-}
+const Solutions: FC = () => {
+  const fileData: IFileData[] = useSelector(
+    (state: RootState) => state.geoJsonData.fileData
+  );
+  const selectedSolution: IFileData | null = useSelector(
+    (state: RootState) => state.geoJsonData.selectedSolution
+  );
+  const dispatch = useDispatch();
 
-const Solutions: FC<ISolutionProps> = ({
-  fileData,
-  selectedSolution,
-  setSelectedSolution,
-}) => {
-  const handleSolutionItemClick = (fileData: IFileData) => {
-    setSelectedSolution(fileData);
+  const handleSolutionItemClick = (fileDataItem: IFileData) => {
+    dispatch(setSelectedSolution(fileDataItem));
   };
 
   return (
     <Layout>
       <LayoutTitle>Solutions</LayoutTitle>
       <List>
-        {fileData.map((fileData, index) => (
+        {fileData.map((fileDataItem, index) => (
           <ListItem
             key={index}
-            $isSelected={fileData.filename === selectedSolution.filename}
-            onClick={() => handleSolutionItemClick(fileData)}
+            $isSelected={fileDataItem.filename === selectedSolution?.filename}
+            onClick={() => handleSolutionItemClick(fileDataItem)}
           >
-            {fileData.filename}
+            {fileDataItem.filename}
           </ListItem>
         ))}
       </List>

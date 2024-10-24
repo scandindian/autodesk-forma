@@ -1,8 +1,12 @@
 import { render, screen, fireEvent } from "@testing-library/react";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
 import { describe, it, expect, vi } from "vitest";
-import WorkArea from "../components/WorkArea"; // Adjust the import path
+import WorkArea from "../components/WorkArea";
+import geoJsonDataReducer from "../store/slice";
 import { IPolygonData, IFileData } from "../types";
 
+// Mock React Leaflet components
 interface MapContainerProps {
   children: React.ReactNode;
 }
@@ -32,10 +36,32 @@ vi.mock("react-leaflet", () => ({
 
 // Mock the utility functions
 vi.mock("../utility", () => ({
+  importedFileData: {},
   calculateCenter: () => ({ lat: 0, lng: 0 }),
 }));
 
-describe("WorkArea Component", () => {
+// Helper function to render component with Redux store
+const renderWithRedux = (
+  component: React.ReactNode,
+  initialState: {
+    geoJsonData: {
+      fileData: IFileData[];
+      selectedSolution: IFileData;
+      polygonData: IPolygonData[];
+    };
+  }
+) => {
+  const store = configureStore({
+    reducer: {
+      geoJsonData: geoJsonDataReducer,
+    },
+    preloadedState: initialState,
+  });
+
+  return render(<Provider store={store}>{component}</Provider>);
+};
+
+describe("WorkArea Component with Redux", () => {
   const mockFileData: IFileData[] = [
     {
       filename: "test1.json",
@@ -76,21 +102,16 @@ describe("WorkArea Component", () => {
     },
   ];
 
-  it("renders the map and polygon", () => {
-    const setPolygonData = vi.fn();
-    const setFileData = vi.fn();
-    const setSelectedSolution = vi.fn();
+  const initialState = {
+    geoJsonData: {
+      fileData: mockFileData,
+      selectedSolution: mockFileData[0],
+      polygonData: mockPolygonData,
+    },
+  };
 
-    render(
-      <WorkArea
-        fileData={mockFileData}
-        setFileData={setFileData}
-        selectedSolution={mockFileData[0]}
-        setSelectedSolution={setSelectedSolution}
-        polygonData={mockPolygonData}
-        setPolygonData={setPolygonData}
-      />
-    );
+  it("renders the map and polygon", () => {
+    renderWithRedux(<WorkArea />, initialState);
 
     // Check that the map container and tile layer are rendered
     expect(screen.getByTestId("map")).toBeInTheDocument();
@@ -101,26 +122,25 @@ describe("WorkArea Component", () => {
   });
 
   it("toggles polygon selection on click", () => {
-    const setPolygonData = vi.fn();
-    const setFileData = vi.fn();
-    const setSelectedSolution = vi.fn();
+    const store = configureStore({
+      reducer: {
+        geoJsonData: geoJsonDataReducer,
+      },
+      preloadedState: initialState,
+    });
 
     render(
-      <WorkArea
-        fileData={mockFileData}
-        setFileData={setFileData}
-        selectedSolution={mockFileData[0]}
-        setSelectedSolution={setSelectedSolution}
-        polygonData={mockPolygonData}
-        setPolygonData={setPolygonData}
-      />
+      <Provider store={store}>
+        <WorkArea />
+      </Provider>
     );
 
     // Simulate clicking the polygon
     const polygon = screen.getByTestId("polygon");
     fireEvent.click(polygon);
 
-    // Ensure the click handler is triggered
-    expect(setPolygonData).toHaveBeenCalled();
+    // Dispatches should update the Redux state
+    const actions = store.getState().geoJsonData.polygonData;
+    expect(actions[0].isSelected).toBe(true); // Assuming the first polygon was selected on click
   });
 });

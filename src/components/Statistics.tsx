@@ -1,5 +1,7 @@
 import { FC } from "react";
 import styled from "styled-components";
+import { useSelector } from "react-redux";
+import { RootState } from "../store";
 import { IPolygonData } from "../types";
 import { calculatePolygonArea, calculateUnion } from "../utility";
 
@@ -24,11 +26,11 @@ const StatisticsItem = styled.p<StatisticsItemProps>`
   color: ${({ $isSelected }) => ($isSelected ? "#DD2C00" : "#000")};
 `;
 
-interface IStatisticsProps {
-  polygonData: IPolygonData[];
-}
+const Statistics: FC = () => {
+  const polygonData: IPolygonData[] = useSelector(
+    (state: RootState) => state.geoJsonData.polygonData
+  );
 
-const Statistics: FC<IStatisticsProps> = ({ polygonData }) => {
   const polygonsArea = polygonData.map((featureItem) => {
     return calculatePolygonArea(featureItem.positions);
   });

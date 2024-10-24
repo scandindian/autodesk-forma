@@ -1,11 +1,10 @@
-import { useState } from "react";
 import styled from "styled-components";
 import Toolbar from "./components/Toolbar";
 import Solutions from "./components/Solutions";
 import Statistics from "./components/Statistics";
 import WorkArea from "./components/WorkArea";
-import { IFileData, IPolygonData } from "./types";
-import { importedFileData } from "./utility";
+import { Provider } from "react-redux";
+import store from "./store";
 
 const Layout = styled.div`
   display: grid;
@@ -16,30 +15,15 @@ const Layout = styled.div`
 `;
 
 const App: React.FC = () => {
-  const [fileData, setFileData] = useState<IFileData[]>(importedFileData);
-  const [selectedSolution, setSelectedSolution] = useState(importedFileData[0]);
-  const [polygonData, setPolygonData] = useState<IPolygonData[]>([]);
-
   return (
-    <>
+    <Provider store={store}>
       <Toolbar />
       <Layout>
-        <Solutions
-          fileData={fileData}
-          selectedSolution={selectedSolution}
-          setSelectedSolution={setSelectedSolution}
-        />
-        <WorkArea
-          fileData={fileData}
-          setFileData={setFileData}
-          selectedSolution={selectedSolution}
-          setSelectedSolution={setSelectedSolution}
-          polygonData={polygonData}
-          setPolygonData={setPolygonData}
-        />
-        <Statistics polygonData={polygonData} />
+        <Solutions />
+        <WorkArea />
+        <Statistics />
       </Layout>
-    </>
+    </Provider>
   );
 };
 
