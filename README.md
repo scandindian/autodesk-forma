@@ -22,6 +22,7 @@ A web application for visualizing GeoJSON data on a map and performing geometric
 - The Leaflet library is used to display GeoJSON data on the map.
 - The Turf.js library is used for performing union and intersection operations on polygons.
 - Styled components are used for styling the interface.
+- State management is done using redux.
 
 ## Code Structure
 
