@@ -19,7 +19,7 @@ const Logo = styled.div`
 const Toolbar: React.FC = () => {
   return (
     <ToolbarContainer>
-      <Logo>Autodesk Forma</Logo>
+      <Logo>Geo Planner</Logo>
     </ToolbarContainer>
   );
 };
