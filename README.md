@@ -1,6 +1,6 @@
-# Autodesk Forma
+# Geo Planner
 
-A web application for visualizing GeoJSON data on a map and performing geometric operations. You can view the app deployed on Netlify here: [Autodesk Forma](https://autodesk-forma.netlify.app/).
+A web application for visualizing GeoJSON data on a map and performing geometric operations. You can view the app deployed on Netlify here: [Geo Planner](https://geo-planner.netlify.app/).
 
 ## Usage
 
